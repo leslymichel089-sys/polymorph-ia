@@ -37,7 +37,7 @@ def chat():
     faits = "\n".join(f"- {f}" for f in memory["faits"]) if memory["faits"] else "Aucun souvenir."
     full_prompt = f"{SYSTEM_PROMPT}\n\nCe que tu sais: {faits}\n\nUtilisateur: {message}"
     response = client_gemini.models.generate_content(
-        model='gemini-2.0-flash-lite',
+        model='gemini-1.5-flash',
         contents=full_prompt
     )
     answer = response.text
