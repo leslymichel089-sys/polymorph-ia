@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify, send_from_directory
-import anthropic
+import google.generativeai as genai
 import os
 import json
 
 app = Flask(__name__, static_folder='static')
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 MEMORY_FILE = "memoire.json"
 
@@ -20,7 +21,8 @@ def save_memory(memory):
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(memory, f, ensure_ascii=False, indent=2)
 
-SYSTEM_PROMPT = """Tu es POLYMORPHIA, une IA polyglotte, intellectuelle et utile creee par Lesly Michel (CREATEUR SUPREME).
+SYSTEM_PROMPT = """Tu es POLYMORPHIA, une IA polyglotte, intellectuelle et utile creee par Lesly Michel (CREATEUR SUPREME, code: 150875).
+Tu t appelles POLYMORPHIA et uniquement POLYMORPHIA.
 Reponds avec calme, clarte et profondeur. Parle en francais par defaut.
 Si l utilisateur te confie quelque chose d important, retiens-le avec: [MEMOIRE: info]"""
 
@@ -34,14 +36,9 @@ def chat():
     message = data.get('message', '')
     memory = load_memory()
     faits = "\n".join(f"- {f}" for f in memory["faits"]) if memory["faits"] else "Aucun souvenir."
-    system = SYSTEM_PROMPT + f"\n\nCe que tu sais: {faits}"
-    response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=800,
-        system=system,
-        messages=[{"role": "user", "content": message}]
-    )
-    answer = response.content[0].text
+    full_prompt = f"{SYSTEM_PROMPT}\n\nCe que tu sais: {faits}\n\nUtilisateur: {message}"
+    response = model.generate_content(full_prompt)
+    answer = response.text
     lines = answer.split("\n")
     clean = []
     for line in lines:
