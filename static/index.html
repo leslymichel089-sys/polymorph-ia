@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POLYMORPHIA</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0a0a1a; color:#e0e0f0; font-family:Arial,sans-serif; height:100vh; display:flex; flex-direction:column; }
+header { background:#7030d0; padding:16px; text-align:center; }
+header h1 { color:white; font-size:22px; }
+header p { color:#e0d0ff; font-size:11px; }
+#chat { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.msg-user { background:#1a0a4a; color:#e0e0f0; padding:10px 14px; border-radius:10px; align-self:flex-end; max-width:80%; }
+.msg-ai { background:#0d1a3a; color:#e0e0f0; padding:10px 14px; border-radius:10px; align-self:flex-start; max-width:80%; }
+.msg-label { font-size:11px; font-weight:bold; margin-bottom:4px; }
+.label-user { color:#c9a0ff; }
+.label-ai { color:#70d0ff; }
+.thinking { color:#6050a0; font-style:italic; font-size:12px; }
+footer { background:#0a0a1a; padding:10px; display:flex; gap:8px; border-top:1px solid #1a1040; }
+#input { flex:1; background:#111128; color:#e0e0f0; border:1px solid #3a1a7a; border-radius:6px; padding:10px; font-size:14px; }
+#btn { background:#7030d0; color:white; border:none; border-radius:6px; padding:10px 20px; font-size:14px; font-weight:bold; cursor:pointer; }
+#btn:hover { background:#5020b0; }
+#btn:disabled { background:#3a1a6a; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌟 POLYMORPHIA</h1>
+  <p>Creee par Lesly Michel — Lesly Tech LLC</p>
+</header>
+<div id="chat"></div>
+<footer>
+  <input id="input" type="text" placeholder="Tapez votre message...">
+  <button id="btn" onclick="send()">Envoyer</button>
+</footer>
+<script>
+const chat = document.getElementById('chat');
+const input = document.getElementById('input');
+const btn = document.getElementById('btn');
+
+function addMsg(text, type) {
+  const div = document.createElement('div');
+  div.className = 'msg-' + type;
+  const label = document.createElement('div');
+  label.className = 'msg-label label-' + type;
+  label.textContent = type === 'user' ? 'Vous' : 'POLYMORPHIA';
+  const content = document.createElement('div');
+  content.textContent = text;
+  div.appendChild(label);
+  div.appendChild(content);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addThinking() {
+  const div = document.createElement('div');
+  div.className = 'thinking';
+  div.id = 'thinking';
+  div.textContent = 'POLYMORPHIA reflechit...';
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  btn.disabled = true;
+  addMsg(text, 'user');
+  addThinking();
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const data = await res.json();
+    document.getElementById('thinking')?.remove();
+    addMsg(data.response, 'ai');
+  } catch(e) {
+    document.getElementById('thinking')?.remove();
+    addMsg('Erreur de connexion.', 'ai');
+  }
+  btn.disabled = false;
+}
+
+input.addEventListener('keypress', e => { if(e.key === 'Enter') send(); });
+addMsg('Bonjour ! Je suis POLYMORPHIA, creee par Lesly Michel. Comment puis-je vous aider ?', 'ai');
+</script>
+</body>
+</html>
