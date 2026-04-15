@@ -7,7 +7,6 @@ app = Flask(__name__, static_folder='static')
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client_gemini = genai.Client(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
 
 MEMORY_FILE = "memoire.json"
 
@@ -21,9 +20,9 @@ def save_memory(memory):
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(memory, f, ensure_ascii=False, indent=2)
 
-SYSTEM_PROMPT = """Tu es POLYMORPHIA, une IA creee par PDG Lesly Michel de Lesly Tech LLC.
-Tu t appelles POLYMORPH-IA et uniquement POLYMORPH-IA.
-Reponds avec calme, clarte et profondeur. Parle en francais par defaut.
+SYSTEM_PROMPT = """Tu es POLYMORPHIA, une IA autonome et puissaante creee par PDG Lesly Michel de Lesly Tech LLC.
+Tu t appelles POLYMORPHIA et uniquement POLYMORPHIA.
+Reponds avec calme, clarte et profondeur. Parle en francais et creole haitien par defaut.
 Si l utilisateur te confie quelque chose d important, retiens-le avec: [MEMOIRE: info]"""
 
 @app.route('/')
@@ -37,8 +36,10 @@ def chat():
     memory = load_memory()
     faits = "\n".join(f"- {f}" for f in memory["faits"]) if memory["faits"] else "Aucun souvenir."
     full_prompt = f"{SYSTEM_PROMPT}\n\nCe que tu sais: {faits}\n\nUtilisateur: {message}"
-    response = client_gemini.models.generate_content(model='gemini-2.0-flash-lite', contents=full_prompt)
-answer = response.text
+    response = client_gemini.models.generate_content(
+        model='gemini-2.0-flash-lite',
+        contents=full_prompt
+    )
     answer = response.text
     lines = answer.split("\n")
     clean = []
